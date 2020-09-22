@@ -1,6 +1,7 @@
-FROM php:5.6.39-fpm
+FROM php:5.6.40-fpm
 
 ENV LANG=C.UTF-8
+
 RUN apt update && apt install -y \
     libxml2-dev \
     zlib1g-dev \
@@ -18,22 +19,10 @@ RUN apt update && apt install -y \
     wget \
     locales \
     locales-all \
-    sudo \
     mysql-client \
     zip \
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
-    && docker-php-ext-install pdo_pgsql pgsql soap zip xsl opcache pcntl gd bcmath pdo_mysql mysqli mysql \
-    && curl -fsS -# -o /tmp/icu.tgz -L http://download.icu-project.org/files/icu4c/59.1/icu4c-59_1-src.tgz \
-    && tar -zxf /tmp/icu.tgz -C /tmp \
-    && cd /tmp/icu/source \
-    && ./configure --prefix=/usr/local \
-    && make \
-    && make install \
-    # just to be certain things are cleaned up
-    && rm -rf /tmp/icu* \
-    && PHP_CPPFLAGS="$PHP_CPPFLAGS -std=c++11" docker-php-ext-configure intl --with-icu-dir=/usr/local \
-    # run configure and install in the same RUN line, they extract and clean up the php source to save space
-    && PHP_CPPFLAGS="$PHP_CPPFLAGS -std=c++11" docker-php-ext-install intl \
+    && docker-php-ext-install pdo_pgsql pgsql soap zip xsl opcache pcntl gd bcmath pdo_mysql mysqli mysql intl \
     && pecl install redis-4.0.0 \
     && docker-php-ext-enable redis \
     && apt purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
@@ -66,18 +55,13 @@ COPY .bashrc /var/www/.bashrc
 
 RUN chown -R www-data:www-data /var/www
 
-RUN echo "www-data:www-data" | chpasswd && adduser www-data sudo
-RUN echo "www-data ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers
-
 RUN echo Europe/Moscow | tee /etc/timezone && dpkg-reconfigure --frontend noninteractive tzdata
 
 RUN rm /usr/local/etc/php-fpm.d/www.conf
 COPY php-fpm.conf /usr/local/etc/php-fpm.conf
 COPY php.ini /usr/local/etc/php/
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin -- --filename=composer
-
-USER www-data
 WORKDIR /var/www
+
 
 CMD ["php-fpm"]
