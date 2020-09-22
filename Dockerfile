@@ -15,6 +15,7 @@ RUN apt update && apt install -y \
     libxslt-dev \
     libpq5 \
     libpq-dev \
+    libmemcached11 \
     bash-completion \
     wget \
     locales \
@@ -25,6 +26,10 @@ RUN apt update && apt install -y \
     && docker-php-ext-install pdo_pgsql pgsql soap zip xsl opcache pcntl gd bcmath pdo_mysql mysqli mysql intl memcached \
     && pecl install redis-4.0.0 \
     && docker-php-ext-enable redis \
+    && pecl install memcached-2.2.0 \
+    && docker-php-ext-enable memcached \
+    && pecl install memcache-2.2.7 \
+    && docker-php-ext-enable memcache \
     && apt purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
         autoconf \
         binutils \
