@@ -23,12 +23,12 @@ RUN apt update && apt install -y \
     mysql-client \
     zip \
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
-    && docker-php-ext-install pdo_pgsql pgsql soap zip xsl opcache pcntl gd bcmath pdo_mysql mysqli mysql intl memcached \
+    && docker-php-ext-install pdo_pgsql pgsql soap zip xsl opcache pcntl gd bcmath pdo_mysql mysqli mysql intl \
     && pecl install redis-4.0.0 \
     && docker-php-ext-enable redis \
     && pecl install memcached-2.2.0 \
     && docker-php-ext-enable memcached \
-    && pecl install memcache-2.2.7 \
+    && pecl install memcache-3.0.8 \
     && docker-php-ext-enable memcache \
     && apt purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
         autoconf \
