@@ -28,7 +28,7 @@ RUN apt update && apt install -y \
     && docker-php-ext-enable redis \
     && pecl install memcached-2.2.0 \
     && docker-php-ext-enable memcached \
-    && pecl install memcache-3.0.8 \
+    && yes|CFLAGS="-fgnu89-inline" pecl install memcache-3.0.8 \
     && docker-php-ext-enable memcache \
     && apt purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
         autoconf \
