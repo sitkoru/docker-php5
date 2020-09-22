@@ -15,7 +15,7 @@ RUN apt update && apt install -y \
     libxslt-dev \
     libpq5 \
     libpq-dev \
-    libmemcached11 \
+    libmemcached-dev \
     bash-completion \
     wget \
     locales \
