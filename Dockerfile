@@ -1,4 +1,4 @@
-FROM php:5.6.40-fpm
+FROM php:5.6.40-fpm as base
 
 ENV LANG=C.UTF-8
 
@@ -64,9 +64,25 @@ RUN echo Europe/Moscow | tee /etc/timezone && dpkg-reconfigure --frontend nonint
 
 RUN rm /usr/local/etc/php-fpm.d/www.conf
 COPY php-fpm.conf /usr/local/etc/php-fpm.conf
-COPY php.ini /usr/local/etc/php/
 
 WORKDIR /var/www
 
-
 CMD ["php-fpm"]
+
+FROM base as dev
+
+RUN apt update \
+    && apt install -y $PHPIZE_DEPS openssh-client git unzip rsync \
+    && pecl channel-update pecl.php.net \
+    && pecl install xdebug-2.5.5 \
+    && apt purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $PHPIZE_DEPS \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+COPY xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin -- --filename=composer
+
+FROM base as fpm 
+
+COPY php.ini /usr/local/etc/php/
