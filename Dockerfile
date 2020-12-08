@@ -72,7 +72,7 @@ CMD ["php-fpm"]
 FROM base as dev
 
 RUN apt update \
-    && apt install -y $PHPIZE_DEPS openssh-client git unzip rsync \
+    && apt install -y $PHPIZE_DEPS openssh-client git unzip rsync git \
     && pecl channel-update pecl.php.net \
     && pecl install xdebug-2.5.5 \
     && apt purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $PHPIZE_DEPS \
