@@ -1,4 +1,4 @@
-FROM php:5.6.40-fpm as base
+FROM php:8.0.1-fpm as base
 
 ENV LANG=C.UTF-8
 
