@@ -119,4 +119,26 @@ COPY tests/ /checks/
 RUN apt-get update && apt-get install -y --no-install-recommends libfcgi-bin \
     && sh /checks/smoke.sh && sh /checks/fpm.sh
 
+FROM compiled AS nginx-build
+RUN apt-get update && apt-get install -y --no-install-recommends libpcre3-dev libgmp-dev \
+    && ln -s /usr/include/$(dpkg-architecture --query DEB_BUILD_MULTIARCH)/gmp.h /usr/include/gmp.h \
+    && docker-php-ext-install -j2 exif gmp
+COPY nginx/build.sh /tmp/build-nginx.sh
+RUN sh /tmp/build-nginx.sh
+
+FROM fpm-runtime AS with-nginx
+RUN apt-get update && apt-get install -y --no-install-recommends libpcre3 libgmp10 msmtp \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=nginx-build /usr/local/lib/php/extensions/no-debug-non-zts-20131226/exif.so /usr/local/lib/php/extensions/no-debug-non-zts-20131226/
+COPY --from=nginx-build /usr/local/lib/php/extensions/no-debug-non-zts-20131226/gmp.so /usr/local/lib/php/extensions/no-debug-non-zts-20131226/
+RUN docker-php-ext-enable exif gmp
+COPY --from=nginx-build /nginx-root/ /
+COPY nginx/nginx.conf nginx/php.conf nginx/php_fastcgi.conf /etc/nginx/
+COPY nginx/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
+RUN chmod +x /usr/bin/docker-entrypoint.sh \
+    && mkdir -p /etc/nginx/conf.d /etc/nginx/sites-enabled /etc/nginx/modules-enabled /var/cache/nginx /var/log/nginx \
+    && nginx -t
+EXPOSE 80
+CMD ["/usr/bin/docker-entrypoint.sh"]
+
 FROM fpm-runtime AS fpm

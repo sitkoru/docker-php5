@@ -2,13 +2,17 @@ name: DEV
 
 on:
   push:
-    branches: ['**']
+    branches: [master]
     tags: ['v*.*.*']
   pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: php5-dev-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:

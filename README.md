@@ -26,3 +26,15 @@ Dev сохраняет Xdebug 2.5.5 и использует совместиму
 Сборка ограничена двумя процессами компиляции.
 
 Actions выполняют проверки на `linux/amd64`. Pull request, ветки задач и ручной запуск ничего не публикуют и не требуют входа в GHCR. Существующая публикация сохранена только для push в `master` и тегов `v*.*.*`, после проверок. Слияние и выпуск должны выполняться отдельно.
+
+## Вариант nginx для существующих приложений
+
+Цель `with-nginx` сохраняет интерфейс `ghcr.io/sitkoru/php:5.6-nginx`: порт 80, PHP-FPM 9000, `APP_BEFORE_START_SCRIPT`, `/etc/nginx/conf.d/site.conf`, `/etc/nginx/php_fastcgi.conf`, пользователь `www-data` (UID 33, home `/var/www`), `/usr/bin/msmtp`, а также `mysql`, `exif` и `gmp`. Приложение и его секреты не входят в этот репозиторий.
+
+[Nginx 1.30.6 stable](https://nginx.org/en/download.html) собирается из официальных исходников с [OpenSSL 3.5.9 LTS](https://openssl-library.org/source/), связанным статически только с nginx. Исходные SHA256 закреплены в `nginx/build.sh`; PHP продолжает использовать прежний OpenSSL ABI. Сборка nginx не устанавливает новые системные SSL-библиотеки.
+
+```sh
+docker buildx build --platform linux/amd64 --target with-nginx --load -t php5-check:nginx .
+```
+
+Отдельный workflow `nginx.yml` выполняет только сборку и изолированный HTTP-запрос через nginx в PHP, проверку дополнительных модулей и безопасный фиктивный startup hook. Он никогда не публикует образы. Будущий выпуск должен отдельно опубликовать проверенный `with-nginx` под точным тегом `ghcr.io/sitkoru/php:5.6-nginx`; права записи пакета из этого репозитория пока не проверены. Само слияние изменений этого варианта не обновляет приложения.
